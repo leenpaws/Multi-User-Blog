@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% include "newpost.html" %}
+
+
+  {% for p in posts %}
+    {{ p.render() | safe }}
+    <br><br>
+  {% endfor %}
+
+random letters
+
+
