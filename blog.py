@@ -11,7 +11,7 @@ import user
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
                                autoescape = True)
-
+# check handlers
 secret = 'test'
 
 
@@ -257,7 +257,7 @@ class Welcome(BlogHandler):
         else:
             self.redirect('/signup')
 
-            # TODO add functionality for deleting and/or voting posts and creating/deleting/voting comments
+            # TODO add functionality for deleting and voting posts and creating/deleting/voting comments
 
 
 app = webapp2.WSGIApplication([('/', Welcome),
