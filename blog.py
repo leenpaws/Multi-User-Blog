@@ -257,6 +257,8 @@ class Welcome(BlogHandler):
         else:
             self.redirect('/signup')
 
+            # TODO add functionality for deleting and/or voting posts and creating/deleting/voting comments
+
 
 app = webapp2.WSGIApplication([('/', Welcome),
                                ('/rot13', Rot13),
