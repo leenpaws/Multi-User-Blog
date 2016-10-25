@@ -1,16 +1,12 @@
-import os
-import sys
-import re
-import random
-import hashlib
 import hmac
-import user
-from string import letters
+import os
+import re
 
-import webapp2
 import jinja2
-
+import webapp2
 from google.appengine.ext import db
+
+import user
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir),
@@ -66,7 +62,6 @@ class BlogHandler(webapp2.RequestHandler):
         uid = self.read_secure_cookie('user_id')
         self.user = uid and user.User.by_id(int(uid))
 
-
 def render_post(response, post):
     response.out.write('<b>' + post.subject + '</b><br>')
     response.out.write(post.content)
@@ -89,14 +84,31 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     last_modified = db.DateTimeProperty(auto_now = True)
 
+    # test
     def render(self):
-        self._render_text = self.content.choices('\n', '<br>')
+        self._render_text = self.content.replace('\n', '<br>')
         return render_str("post.html", p=self)
 
 class Front(BlogHandler):
     def get(self):
         posts = greetings = Post.all().order('-created')
         self.render('front.html', posts = posts, username = self.user.name)
+
+    def post(self):
+        if not self.user:
+            self.redirect('/blog')
+
+        subject = self.request.get('subject')
+        content = self.request.get('content')
+
+        if subject and content:
+            p = Post(parent=blog_key(), subject=subject, content=content)
+            p.put()
+            self.redirect('/blog/%s' % str(p.key().id()))
+        else:
+            error = "subject and content, please!"
+            self.render("newpost.html", subject=subject, content=content, error=error)
+
 
 class PostPage(BlogHandler):
     def get(self, post_id):
@@ -108,6 +120,7 @@ class PostPage(BlogHandler):
             return
 
         self.render("permalink.html", post = post)
+
 
 class NewPost(BlogHandler):
     def get(self):
@@ -225,11 +238,11 @@ class Login(BlogHandler):
         u = user.User.login(username, password)
         if u:
             self.login(u)
-            self.render('welcome.html', username=self.user.name)
-            self.redirect('/front')
+            self.render('welcome.html', username=username)
+            self.redirect('front.html')
         else:
             msg = 'Invalid login'
-            self.render('login-form.html', error = msg)
+            self.render('login-form.html', error=msg)
 
 class Logout(BlogHandler):
     def get(self):
@@ -239,6 +252,8 @@ class Logout(BlogHandler):
 class Welcome(BlogHandler):
     def get(self):
         if self.user:
+            print type(self.user), "This is self.user"
+            print type(self.user.name), "This is self.username"
             self.render('welcome.html', username=self.user.name)
         else:
             self.redirect('/signup')
@@ -248,13 +263,13 @@ app = webapp2.WSGIApplication([('/', Welcome),
                                ('/rot13', Rot13),
                                ('/signup', Signup),
                                ('/welcome', Welcome),
-                               ('/front/?', Front),
+                               ('/front', Front),
                                ('/blog/([0-9]+)', PostPage),
-                               ('/blog/newpost', NewPost),
+                               ('/blog/?', NewPost),
                                ('/Register', Register),
                                ('/login', Login),
                                ('/logout', Logout),
-                                ],
+                               ],
                               debug=True)
 # app = webapp2.WSGIApplication([
 #     ('/', DefaultHandler),

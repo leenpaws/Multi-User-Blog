@@ -1,13 +1,6 @@
-import os
-import sys
-import re
-import random
 import hashlib
-import hmac
+import random
 from string import letters
-
-import webapp2
-import jinja2
 
 from google.appengine.ext import db
 
@@ -46,6 +39,7 @@ class User(db.Model):
     def by_name(cls, name):
         # change upper case User to cls
         u = User.all().filter('name =', name).get()
+        print type(u), "this is u"
         return u
 
     @classmethod
